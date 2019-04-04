@@ -4,6 +4,11 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
+import android.content.res.XmlResourceParser;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
@@ -31,21 +36,15 @@ import butterknife.ButterKnife;
  */
 public class SlimDialog extends Dialog {
 
-    @BindView(R.id.title_text)
-    TextView titleText;
-    @BindView(R.id.message_text)
-    TextView messageText;
+    @BindView(R.id.title_text) TextView titleText;
+    @BindView(R.id.message_text) TextView messageText;
 
-    @BindView(R.id.positive)
-    TextView positiveButton;
-    @BindView(R.id.negative)
-    TextView negativeButton;
+    @BindView(R.id.positive) TextView positiveButton;
+    @BindView(R.id.negative) TextView negativeButton;
 
-    @BindView(R.id.dialog_root)
-    LinearLayout dialogRoot;
+    @BindView(R.id.dialog_root) LinearLayout dialogRoot;
 
-    @BindView(R.id.content_group)
-    ViewGroup contentParentView;
+    @BindView(R.id.content_group) ViewGroup contentParentView;
 
     private Context mContext;
     private int mTheme;
@@ -70,6 +69,127 @@ public class SlimDialog extends Dialog {
 //    protected SlimDialog(@NonNull Context context, boolean cancelable, @Nullable OnCancelListener cancelListener) {
 //        super(context, cancelable, cancelListener);
 //    }
+    private void applyTheme() {
+    //R.style.HwAppDialog_Light
+    TypedArray a = mContext.getTheme().obtainStyledAttributes(mTheme, R.styleable.AppDialog);
+
+    TypedValue value = new TypedValue();
+    a.getValue(R.styleable.AppDialog_dialogBackground, value);
+    if(value.resourceId >= 0x01000000) {
+        try {
+            XmlResourceParser parser = mContext.getResources().getXml(value.resourceId);
+            Drawable d = Drawable.createFromXml(mContext.getResources(), parser);
+            getWindow().setBackgroundDrawable(d);
+        }catch (Exception e)
+        {
+            getWindow().setBackgroundDrawable(new ColorDrawable(value.data));
+        }
+    } else{
+        getWindow().setBackgroundDrawable(new ColorDrawable(value.data));
+    }
+
+    //color = a.getColor(R.styleable.HwAppDialog_titleColor, 0);
+    value = new TypedValue();
+    a.getValue(R.styleable.AppDialog_titleColor, value);
+    if(value.resourceId >= 0x01000000) {
+        //TODO: not finished but not necessary now
+        titleText.setTextColor(value.data);
+    }
+    else{
+        titleText.setTextColor(value.data);
+    }
+
+    value = new TypedValue();
+    a.getValue(R.styleable.AppDialog_messageColor, value);
+    if(value.resourceId >= 0x01000000) {
+        //TODO: not finished but not necessary now
+        messageText.setTextColor(value.data);
+    }
+    else{
+        messageText.setTextColor(value.data);
+    }
+
+    value = new TypedValue();
+    a.getValue(R.styleable.AppDialog_buttonBackground, value);
+    if(value.resourceId >= 0x01000000) {
+        negativeButton.setBackgroundResource(value.resourceId);
+//            neutralButton.setBackgroundResource(value.resourceId);
+    }
+    else{
+        negativeButton.setBackgroundResource(value.data);
+//            neutralButton.setBackgroundResource(value.data);
+    }
+
+    value = new TypedValue();
+    a.getValue(R.styleable.AppDialog_buttonTextColor, value);
+    if(value.resourceId >= 0x01000000) {
+        try {
+            ColorStateList colors = mContext.getResources().getColorStateList(value.resourceId);
+            negativeButton.setTextColor(colors);
+//                neutralButton.setTextColor(colors);
+        }
+        catch (Exception e)
+        {
+            negativeButton.setTextColor(value.data);
+//                neutralButton.setTextColor(value.data);
+        }
+    }
+    else{
+        negativeButton.setTextColor(value.data);
+//            neutralButton.setTextColor(value.data);
+    }
+
+    value = new TypedValue();
+    if(parameters.mEnableDefaultButton){
+        a.getValue(R.styleable.AppDialog_vividButtonBackground, value);
+    }else{
+        a.getValue(R.styleable.AppDialog_buttonBackground, value);
+    }
+    if(value.resourceId >= 0x01000000) {
+        positiveButton.setBackgroundResource(value.resourceId);
+    }
+    else{
+        positiveButton.setBackgroundResource(value.data);
+    }
+
+    value = new TypedValue();
+    if(parameters.mEnableDefaultButton){
+        a.getValue(R.styleable.AppDialog_vividButtonTextColor, value);
+    }else{
+        a.getValue(R.styleable.AppDialog_buttonTextColor, value);
+    }
+    if(value.resourceId >= 0x01000000) {
+        try {
+            ColorStateList colors = mContext.getResources().getColorStateList(value.resourceId);
+            positiveButton.setTextColor(colors);
+        }
+        catch (Exception e)
+        {
+            positiveButton.setTextColor(value.data);
+        }
+    }
+    else{
+        positiveButton.setTextColor(value.data);
+    }
+
+    value = new TypedValue();
+    a.getValue(R.styleable.AppDialog_dialogBorder, value);
+    if(value.resourceId >= 0x01000000) {
+        try {
+            int dimension = (int)mContext.getResources().getDimension(value.resourceId);
+            dialogRoot.setPadding(dimension, dimension, dimension, dimension);
+        }
+        catch (Exception e)
+        {
+            dialogRoot.setPadding(value.data, value.data, value.data, value.data);
+        }
+    }
+    else{
+        dialogRoot.setPadding(value.data, value.data, value.data, value.data);
+    }
+
+    a.recycle();
+}
 
     /**
      * dialog inside content
@@ -92,7 +212,7 @@ public class SlimDialog extends Dialog {
         } else {
             Log.e(TAG, "positiveButton != NULL");
         }
-
+        parameters.mIsInsideContentExist = true;
         contentParentView.addView(view);
     }
 
@@ -202,6 +322,8 @@ public class SlimDialog extends Dialog {
                     parameters.mPositiveButtonText,
                     parameters.mPositiveButtonClickListener); // set positive button
             Log.d(TAG, "dialog mPositiveButtonText()");
+        }else {
+            positiveButton.setVisibility(View.GONE);
         }
         /* negative button */
         if(parameters.mNegativeButtonText!= null && !parameters.mNegativeButtonText.isEmpty()) {
@@ -209,14 +331,20 @@ public class SlimDialog extends Dialog {
                     parameters.mNegativeButtonText,
                     parameters.mNegativeButtonClickListener); // set negative button
             Log.d(TAG, "dialog mNegativeButtonText()");
+        }else {
+            negativeButton.setVisibility(View.GONE);
         }
         if(parameters.mOnDismissListener!= null) {
-            dialog.setOnDismissListener(parameters.mOnDismissListener);
+            dialog.setOnDismissListener(parameters.mOnDismissListener);// Set a listener to be invoked when the dialog is dismissed.
             Log.d(TAG, "dialog mOnDismissListener()");
         }
         if(parameters.mInsideContentView != null) {
+
+            Log.d(TAG, "dialog mInsideContentView() parameters.mIsInsideContentExist: " + parameters.mIsInsideContentExist);
+            if (parameters.mIsInsideContentExist){
+                contentParentView.removeView(parameters.mInsideContentView);
+            }
             dialog.setInsideContentView(parameters.mInsideContentView);
-            Log.d(TAG, "dialog mInsideContentView()");
         }
         dialog.setOnKeyListener(new OnKeyListener() {
             @Override
@@ -240,18 +368,24 @@ public class SlimDialog extends Dialog {
         String mTitle;
         int mTitleColor;
         String mMessage;
+        Boolean mEnableOneButton;    // only one button
+        Boolean mEnableAutoDismiss;  // 触发 positive 按钮后自动 dismiss
         Boolean mEnableDefaultButton;
-        String mPositiveButtonText;
-        OnClickListener mPositiveButtonClickListener;
-        String mNegativeButtonText;
-        OnClickListener mNegativeButtonClickListener;
-        String mNeutralButtonText;
-        OnClickListener mNeutralButtonClickListener;
-        View mInsideContentView;
-        OnDismissListener mOnDismissListener;
-        SlimDialogParameters()
-        {
+        String mPositiveButtonText;  // Positive 按钮名称
+        OnClickListener mPositiveButtonClickListener; // Positive 按钮点击事件监听
+        String mNegativeButtonText;  // Negative 按钮名称
+        OnClickListener mNegativeButtonClickListener; // Negative 按钮点击事件监听
+        String mNeutralButtonText;   // Neutral 按钮名称
+        OnClickListener mNeutralButtonClickListener;  // Neutral  按钮点击事件监听
+        View mInsideContentView;     // Dialog 内容框
+        Boolean mIsInsideContentExist; // InsideContent是否已存在
+        OnDismissListener mOnDismissListener;         // Set a listener to be invoked when the dialog is dismissed.
+        SlimDialogParameters() {
+            Log.e(TAG, " =========== SlimDialogParameters Construct =========== ");
+            mEnableOneButton = false;
             mEnableDefaultButton = false;
+            mEnableAutoDismiss = true;     // 默认 触发positive button 后自动 dismiss
+            mIsInsideContentExist = false;
         }
     }
     
@@ -265,6 +399,9 @@ public class SlimDialog extends Dialog {
         }
     }
 
+    /**
+     * Builder 设计模式
+     */
     public static class Builder {
 
         protected SlimDialogParameters parameters;
@@ -286,88 +423,86 @@ public class SlimDialog extends Dialog {
             return parameters.mContext;
         }
 
-        public Builder setTitle(String title)
-        {
+        public Builder setTitle(String title) {
             parameters.mTitle = title;
             return this;
         }
-        public Builder setTitleColor(int color)
-        {
+        public Builder setTitleColor(int color) {
             parameters.mTitleColor = color;
             return this;
         }
 
-        public Builder setTitle(int titleID)
-        {
+        public Builder setTitle(int titleID) {
             String title = getContext().getString(titleID);
             return setTitle(title);
         }
 
-        public Builder setMessage(String message)
-        {
+        public Builder setMessage(String message) {
             parameters.mMessage = message;
             return this;
         }
 
-        public Builder setMessage(int messageID)
-        {
+        public Builder setMessage(int messageID) {
             String message = getContext().getString(messageID);
             return setMessage(message);
         }
 
-        public Builder setPositiveButton(String buttonText, OnClickListener onClickListener)
-        {
+        public Builder setPositiveButton(String buttonText, OnClickListener onClickListener) {
             parameters.mPositiveButtonText = buttonText;
             parameters.mPositiveButtonClickListener = onClickListener;
             return this;
         }
 
-        public Builder setPositiveButton(int buttonTextID, OnClickListener onClickListener)
-        {
+        public Builder setPositiveButton(int buttonTextID, OnClickListener onClickListener) {
             String buttonText = getContext().getString(buttonTextID);
             return setPositiveButton(buttonText, onClickListener);
         }
 
-        public Builder setEnableDefaultButton(boolean enableDefaultButton)
-        {
+        /* 触发positive按钮后自动dismiss */
+        public Builder setEnableAutoDismiss(boolean enableAutoDismiss) {
+            parameters.mEnableAutoDismiss = enableAutoDismiss;
+            return this;
+        }
+        /* Enable one button（like: submit） */
+        public Builder setEnableOneButton(boolean enableOneButton) {
+            parameters.mEnableOneButton = enableOneButton;
+            return this;
+        }
+
+        public Builder setEnableDefaultButton(boolean enableDefaultButton) {
             parameters.mEnableDefaultButton = enableDefaultButton;
             return this;
         }
 
-        public Builder setNegativeButton(String buttonText, OnClickListener onClickListener)
-        {
+        public Builder setNegativeButton(String buttonText, OnClickListener onClickListener) {
             parameters.mNegativeButtonText = buttonText;
             parameters.mNegativeButtonClickListener = onClickListener;
             return this;
         }
 
-        public Builder setNegativeButton(int buttonTextID, OnClickListener onClickListener)
-        {
+        public Builder setNegativeButton(int buttonTextID, OnClickListener onClickListener) {
             String buttonText = getContext().getString(buttonTextID);
             return setNegativeButton(buttonText, onClickListener);
         }
 
-        public Builder setNeutralButton(String buttonText, OnClickListener onClickListener)
-        {
+        public Builder setNeutralButton(String buttonText, OnClickListener onClickListener) {
             parameters.mNeutralButtonText = buttonText;
             parameters.mNeutralButtonClickListener = onClickListener;
             return this;
         }
 
-        public Builder setNeutralButton(int buttonTextID, OnClickListener onClickListener)
-        {
+        public Builder setNeutralButton(int buttonTextID, OnClickListener onClickListener) {
             String buttonText = getContext().getString(buttonTextID);
             return setNeutralButton(buttonText, onClickListener);
         }
 
-        public Builder setOnDismissListener(OnDismissListener listener)
-        {
+        public Builder setOnDismissListener(OnDismissListener listener) {
             parameters.mOnDismissListener = listener;
             return this;
         }
 
-        public Builder setInsideContentView(View view)
-        {
+        public Builder setInsideContentView(View view) {
+            Log.d(TAG, "========== setInsideContentView ==========");
             parameters.mInsideContentView = view;
             return this;
         }
@@ -385,4 +520,5 @@ public class SlimDialog extends Dialog {
             return dialog;
         }
     }
+
 }

@@ -6,6 +6,10 @@
 
     <color name="whiteBackground">#FFFFFF</color>
 
+    <!-- 主题色-->
+    <color name="themeColor">#fa8317</color>
+
+
     <!-- 模糊背景 -->
     <color name="greyFuzzy">#66000000</color>
 
@@ -33,7 +37,12 @@
     <color name="grayCircleBg">#8F8E94</color>
     <color name="grayTransparentCircleBg">#b2939393</color>
 
+    <color name="orangeTab">#fa8317</color>
     <color name="start_orange">#FF8500</color>
     <color name="end_orange">#F64927</color>
+
+    <!-- dialog -->
+    <color name="warm_grey_80_opacity">#CCE7E3DE</color>
+
 
 </resources>
