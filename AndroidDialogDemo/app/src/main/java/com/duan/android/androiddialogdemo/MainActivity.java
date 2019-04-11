@@ -3,6 +3,7 @@ package com.duan.android.androiddialogdemo;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.annotation.IntDef;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,8 +15,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.duan.android.androiddialogdemo.dialog.SlimDialog;
+import com.duan.android.androiddialogdemo.util.DialogType;
 import com.duan.android.androiddialogdemo.widget.CountDownTextView;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
 
 import butterknife.BindView;
@@ -29,12 +33,16 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.tv1) TextView tvPrice;                  //
     @BindView(R.id.iv_enter1) ImageView ivEnterPrice;      //
 
-    private SlimDialog mDoubleBtDialog;      // 双按钮弹窗
-    private SlimDialog mSingleBtDialog;      // 单按钮弹窗
-    private View contentView;        // dialog content view
+    private SlimDialog mDoubleBtDialog;// 双按钮弹窗
+    private SlimDialog mSingleBtDialog;// 单按钮弹窗
+
+    private View mDoubleBtContentView;// 双按钮弹窗 content view
     private CountDownTextView btCode; // 获取验证码 按钮
     private EditText telEt;           // 手机号
     private EditText verificationEt;  // 验证码
+
+    private View mSingleBtContentView;// dialog content view
+    private TextView tvMessage;       // dialog message
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +75,8 @@ public class MainActivity extends AppCompatActivity {
     // 初始化 view
     private void initView() {
 
-        initDialogContentView(); // 初始化Dialog
+        initDoubleBtDialogContentView(); // 初始化双按钮Dialog
+        initSingleBtDialogContentView(); // 初始化单按钮Dialog
     }
 
     @OnClick(R.id.linear1)
@@ -77,12 +86,16 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.linear2)
     public void onLinear2Clicked(){
-       showSingleBtDialog();
+       showMessageDialog();
+    }
+
+    @OnClick(R.id.linear3)
+    public void onLinear3Clicked(){
+       showSpecifiedMessageDialog();
     }
 
     /**
      * 双按钮 Dialog
-     *
      */
     private void showDoubleBtDialog(){
         if (mDoubleBtDialog == null){
@@ -91,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
                     .Builder(this)
                     .setTitle("Dialog Test 1")
                     .setTitleColor(getResources().getColor(R.color.themeColor))
-                    .setInsideContentView(getDialogContentView1())
+                    .setInsideContentView(getDialogContentView(TYPE_NORMAL))
                     .setEnableOneButton(true)
                     .setEnableAutoDismiss(false)
                     .setPositiveButton(getResources().getString(R.string.confirm), new DialogInterface.OnClickListener() {
@@ -113,16 +126,43 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 单按钮 Dialog
-     * 适用于 展示既定信息
+     * 适用于 展示普通信息
      */
-    private void showSingleBtDialog(){
+    private void showMessageDialog(){
         if (mSingleBtDialog == null){
             Log.d(TAG, "mDialog == null");
             mSingleBtDialog = new SlimDialog
                     .Builder(this)
-                    .setTitle("Dialog Test 1")
+                    .setTitle("Dialog Title")
                     .setTitleColor(getResources().getColor(R.color.themeColor))
-                    .setInsideContentView(getDialogContentView1())
+                    //.setInsideContentView(getDialogContentView(DialogType.TYPE_SINGLE_BUTTON))
+                    .setMessage("dialog message for user\n like : one piece message")
+                    .setEnableOneButton(true)
+                    .setEnableAutoDismiss(false)
+                    .setPositiveButton(getResources().getString(R.string.confirm), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            showPromptMessage("positive button clicked!");
+                        }
+                    })
+                    .create();
+        }
+        mSingleBtDialog.show();
+    }
+
+    /**
+     * 单按钮 Dialog
+     * 适用于 展示特定页面信息
+     */
+    private void showSpecifiedMessageDialog(){
+        if (mSingleBtDialog == null){
+            Log.d(TAG, "mDialog == null");
+            mSingleBtDialog = new SlimDialog
+                    .Builder(this)
+                    .setTitle("Dialog Title")
+                    .setTitleColor(getResources().getColor(R.color.themeColor))
+                    .setInsideContentView(getDialogContentView(TYPE_SINGLE_BUTTON))
+                    //.setInsideContentView(getDialogContentView(DialogType.TYPE_SINGLE_BUTTON))
                     .setEnableOneButton(true)
                     .setEnableAutoDismiss(false)
                     .setPositiveButton(getResources().getString(R.string.confirm), new DialogInterface.OnClickListener() {
@@ -149,13 +189,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public View initDialogContentView() {
-        if (contentView == null){
-            contentView = View.inflate(this, R.layout.dialog_verification, null);
+    public View initDoubleBtDialogContentView() {
+        if (mDoubleBtContentView == null){
+            mDoubleBtContentView = View.inflate(this, R.layout.dialog_verification, null);
         }
-        btCode = contentView.findViewById(R.id.tv_send_verify_code);
-        telEt = contentView.findViewById(R.id.edit_telephone);
-        verificationEt = contentView.findViewById(R.id.edit_code);
+        btCode = mDoubleBtContentView.findViewById(R.id.tv_send_verify_code);
+        telEt = mDoubleBtContentView.findViewById(R.id.edit_telephone);
+        verificationEt = mDoubleBtContentView.findViewById(R.id.edit_code);
 
         // 点击获取验证码 清空输入
         btCode.setOnClickListener(new View.OnClickListener() {
@@ -167,28 +207,103 @@ public class MainActivity extends AppCompatActivity {
                 verificationEt.setText("");
             }
         });
-        return contentView;
+        return mDoubleBtContentView;
+    }
+    public View initSingleBtDialogContentView() {
+        if (mSingleBtContentView == null){
+            mSingleBtContentView = View.inflate(this, R.layout.dialog_msg, null);
+        }
+        tvMessage = mSingleBtContentView.findViewById(R.id.tv_message);
+        tvMessage.setPadding(16,10,16,20);
+        tvMessage.setText("user name: Monkey D Luffy \n position: captain" +
+                "\n favorite food: various of meat \n father: Monkey D Dragon " +
+                "\n grandpa: Monkey D KaPu \n brother: A & S");
+        return mSingleBtContentView;
     }
 
     /**
+     *
      * Dialog content view
-     * @param dialogType
+     * @param dialogType todo  Def 注解代替枚举类型
      * @return
      */
-    public View getDialogContentView1(int dialogType) {
+    public View getDoubleBtDialogContentView(int dialogType) {
         switch (dialogType){
+            case DialogType.TYPE_NORMAL:
+                break;
+            case DialogType.TYPE_SINGLE_BUTTON:
+                break;
+            default:
+                break;
         }
-        if (contentView == null){
-            contentView = View.inflate(this, R.layout.dialog_verification, null);
-            telEt = contentView.findViewById(R.id.edit_telephone);
-            verificationEt = contentView.findViewById(R.id.edit_code);
+        if (mDoubleBtContentView == null){
+            mDoubleBtContentView = View.inflate(this, R.layout.dialog_verification, null);
+            telEt = mDoubleBtContentView.findViewById(R.id.edit_telephone);
+            verificationEt = mDoubleBtContentView.findViewById(R.id.edit_code);
         }
         telEt.setText("13524114059");
         telEt.setEnabled(false);
         telEt.setHint("");
-        return contentView;
+        return mDoubleBtContentView;
     }
 
+    public View getSingleBtDialogContentView(int dialogType) {
+        switch (dialogType){
+        }
+        if (mSingleBtContentView == null){
+            mSingleBtContentView = View.inflate(this, R.layout.dialog_verification, null);
+            telEt = mSingleBtContentView.findViewById(R.id.edit_telephone);
+            verificationEt = mSingleBtContentView.findViewById(R.id.edit_code);
+        }
+        telEt.setText("13524114059");
+        telEt.setEnabled(false);
+        telEt.setHint("");
+        return mSingleBtContentView;
+    }
+
+    public static final int TYPE_NORMAL = 0;
+    public static final int TYPE_SINGLE_BUTTON = 1;
+    //Retention -元注解(系统提供的，用于定义注解的“注解”)
+    @Retention(RetentionPolicy.SOURCE)
+    //这里指定int的取值只能是以下范围
+    @IntDef({TYPE_NORMAL, TYPE_SINGLE_BUTTON})
+    @interface DialogTypeDef {
+    }
+
+    public View getDialogContentView(@DialogTypeDef int dialogType) {
+        switch (dialogType){
+            case DialogType.TYPE_NORMAL:
+                if (mDoubleBtContentView == null){
+                    mDoubleBtContentView = View.inflate(this, R.layout.dialog_verification, null);
+                    telEt = mDoubleBtContentView.findViewById(R.id.edit_telephone);
+                    verificationEt = mDoubleBtContentView.findViewById(R.id.edit_code);
+                }
+                telEt.setText("13524114059");
+                telEt.setEnabled(false);
+                telEt.setHint("");
+                return mDoubleBtContentView;
+
+            case DialogType.TYPE_SINGLE_BUTTON:   // 单按钮Dialog 展示信息使用
+                if (mSingleBtContentView == null){
+                    mSingleBtContentView = View.inflate(this, R.layout.dialog_msg, null);
+                    tvMessage = mSingleBtContentView.findViewById(R.id.tv_message);
+                }
+                tvMessage.setText("user name: Monkey D Luffy\n position: captain" +
+                        "\n favorite food: various of meat \n father: Monkey D Dragon " +
+                        "\n grandpa: Monkey D KaPu \n brother: A & S");
+                return mSingleBtContentView;
+            default:
+                if (mDoubleBtContentView == null){
+                    mDoubleBtContentView = View.inflate(this, R.layout.dialog_verification, null);
+                    telEt = mDoubleBtContentView.findViewById(R.id.edit_telephone);
+                    verificationEt = mDoubleBtContentView.findViewById(R.id.edit_code);
+                }
+                telEt.setText("13524114059");
+                telEt.setEnabled(false);
+                telEt.setHint("");
+                return mDoubleBtContentView;
+        }
+    }
 
     public void showPromptMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

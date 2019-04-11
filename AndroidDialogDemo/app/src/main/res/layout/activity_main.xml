@@ -83,4 +83,40 @@
         android:layout_height="10dp"
         android:background="@color/greyBackground"/>
 
+    <!-- Dialog -->
+    <LinearLayout
+        android:id="@+id/linear3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:background="@color/whiteBackground">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Specified Message Dialog"
+            style="@style/BlackTitleStyle"/>
+
+        <TextView
+            android:id="@+id/tv3"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/item_icon_padding"
+            android:text=""
+            style="@style/TextRightStyle"/>
+
+        <ImageView
+            android:id="@+id/iv_enter3"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/margin_arrow_right"
+            android:src="@drawable/enter"/>
+
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:background="@color/greyBackground"/>
+
 </LinearLayout>
